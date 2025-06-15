@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blogger Bot - Professional Multi Video Player</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet"
+  />
+  <style>
+    /* Reset & base */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+      color: #c9d1d9;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: start;
+      padding: 32px 16px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    h1 {
+      font-weight: 700;
+      font-size: 2.75rem;
+      margin-bottom: 0.5rem;
+      color: #58a6ff;
+      text-align: center;
+      user-select: none;
+      text-shadow: 0 0 8px #58a6ff88;
+    }
+    .app-container {
+      max-width: 700px;
+      width: 100%;
+      background: #21262d;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgb(0 0 0 / 0.7);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 28px;
+      gap: 24px;
+      user-select: none;
+      position: relative;
+      z-index: 0;
+    }
+    /* Chat container */
+    #chat {
+      background: #0d1117;
+      border-radius: 12px;
+      padding: 24px;
+      max-height: 460px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: inset 0 0 10px #58a6ff22;
+      scroll-behavior: smooth;
+    }
+    /* Messages */
+    .message {
+      max-width: 75%;
+      padding: 14px 20px;
+      border-radius: 24px;
+      font-size: 1rem;
+      line-height: 1.5;
+      position: relative;
+      animation: fadeInUp 0.4s ease forwards;
+      word-break: break-word;
+      box-shadow: 0 4px 8px rgb(0 0 0 / 0.15);
+      user-select: text;
+      white-space: pre-wrap;
+    }
+    .message.bot {
+      background: linear-gradient(135deg, #2382ff, #2ea0ff);
+      color: white;
+      align-self: flex-start;
+      border-top-left-radius: 4px;
+      box-shadow: 0 5px 15px #2382ff66;
+    }
+    .message.user {
+      background: #39d353;
+      color: #0d1117;
+      align-self: flex-end;
+      border-top-right-radius: 4px;
+      box-shadow: 0 5px 15px #39d353aa;
+    }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translate3d(0, 8px, 0);
+      }
+      to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+      }
+    }
+    /* Typing indicator */
+    #typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 4px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+      animation: blink 1.4s infinite both;
+      opacity: 0.6;
+    }
+    .dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    @keyframes blink {
+      0%, 80%, 100% {
+        opacity: 0.3;
+        transform: translateY(0);
+      }
+      40% {
+        opacity: 1;
+        transform: translateY(-4px);
+      }
+    }
+    /* Input area */
+    .input-area {
+      display: flex;
+      gap: 20px;
+      align-items: stretch;
+    }
+    textarea {
+      flex-grow: 1;
+      background: #161b22;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      padding: 14px 20px;
+      font-size: 1rem;
+      color: #c9d1d9;
+      font-family: 'Inter', sans-serif;
+      resize: vertical;
+      min-height: 80px;
+      transition: border-color 0.3s ease;
+      box-shadow: inset 0 0 8px #2382ff33;
+      outline-offset: 2px;
+      outline-color: #58a6ff50;
+    }
+    textarea:hover {
+      border-color: #58a6ff88;
+    }
+    textarea:focus {
+      border-color: #58a6ffcc;
+      box-shadow: inset 0 0 12px #2382ffbb;
+    }
+    input[type="number"] {
+      width: 100px;
+      background: #161b22;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 1rem;
+      color: #c9d1d9;
+      font-family: 'Inter', sans-serif;
+      transition: border-color 0.3s ease;
+      box-shadow: inset 0 0 8px #2382ff33;
+      outline-offset: 2px;
+      outline-color: #58a6ff50;
+      text-align: center;
+    }
+    input[type="number"]:hover {
+      border-color: #58a6ff88;
+    }
+    input[type="number"]:focus {
+      border-color: #58a6ffcc;
+      box-shadow: inset 0 0 12px #2382ffbb;
+    }
+    button {
+      background-color: #2382ff;
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-weight: 700;
+      font-size: 1.1rem;
+      padding: 14px 28px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      user-select: none;
+      box-shadow: 0 6px 15px #2382ffbb;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      flex-shrink: 0;
+    }
+    button:hover:not(:disabled) {
+      background-color: #1a5eda;
+      box-shadow: 0 8px 25px #1a5edacc;
+    }
+    button:disabled {
+      background-color: #58a6ff88;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    /* Video grid container & grid */
+    #video-grid-container {
+      margin-top: 28px;
+      border-radius: 16px;
+      background: #161b22;
+      box-shadow: 0 12px 25px rgb(0 0 0 / 0.8);
+      padding: 24px;
+      max-height: 520px;
+      overflow-y: auto;
+      user-select: none;
+    }
+    #video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    iframe {
+      width: 250px;
+      height: 140px;
+      border-radius: 14px;
+      border: none;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+      transition: transform 0.3s ease;
+      cursor: pointer;
+      background: black;
+    }
+    iframe:hover {
+      transform: scale(1.05);
+      box-shadow: 0 12px 32px rgba(35, 130, 255, 0.8);
+      z-index: 5;
+    }
+    /* Scrollbar styles */
+    #chat::-webkit-scrollbar, #video-grid-container::-webkit-scrollbar {
+      width: 8px;
+    }
+    #chat::-webkit-scrollbar-thumb, #video-grid-container::-webkit-scrollbar-thumb {
+      background-color: #2382ffbb;
+      border-radius: 4px;
+    }
+    /* Responsive */
+    @media (max-width: 520px) {
+      #video-grid {
+        grid-template-columns: 1fr;
+      }
+      iframe {
+        width: 100%;
+        height: 160px;
+      }
+      .input-area {
+        flex-direction: column;
+        gap: 16px;
+      }
+      input[type="number"] {
+        width: 100%;
+      }
+      button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+    /* Ads buttons container */
+    #ads-buttons {
+      margin-top: 8px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    #ads-buttons button {
+      background-color: #4caf50;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      box-shadow: 0 4px 10px rgba(76, 175, 80, 0.5);
+      user-select: none;
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+    }
+    #ads-buttons button:hover:not(:disabled) {
+      background-color: #388e3c;
+    }
+    #ads-buttons button:disabled {
+      background-color: #a5d6a7;
+      cursor: default;
+      box-shadow: none;
+    }
+  </style>
+</head>
+<body>
+  <main class="app-container" role="main" aria-labelledby="app-title">
+    <h1 id="app-title" tabindex="0">Blogger Bot - Video Player</h1>
+
+    <section id="chat" role="log" aria-live="polite" aria-relevant="additions" aria-atomic="false"></section>
+
+    <form id="user-form" class="input-area" aria-label="Chat input form" autocomplete="off" novalidate>
+      <textarea
+        id="user-input"
+        placeholder="Paste YouTube video URL(s) or video ID(s), separated by commas or new lines"
+        rows="3"
+        aria-label="YouTube video URLs or IDs"
+        spellcheck="false"
+        required
+        autofocus
+      ></textarea>
+      <button type="submit" id="submit-btn" aria-label="Send message" title="Send message">
+        <span class="material-icons" aria-hidden="true">send</span> Send
+      </button>
+    </form>
+
+    <section id="ads-buttons" aria-label="Advertisement options" style="display:none;"></section>
+
+    <section id="row-count-section" class="input-area" style="display:none; margin-top: 16px;" aria-label="Number of videos to play input">
+      <input
+        type="number"
+        id="row-count-input"
+        min="1"
+        max="100"
+        placeholder="Enter number of videos to play (1-100)"
+        aria-label="Specify number of videos to play"
+        autofocus
+        required
+      />
+      <button type="button" id="row-count-submit-btn" aria-label="Submit number of videos to play" title="Play videos">Play</button>
+    </section>
+
+    <section id="video-grid-container" aria-label="YouTube video player grid" hidden></section>
+  </main>
+
+<script>
+(function(){
+  const chatEl = document.getElementById('chat');
+  const formEl = document.getElementById('user-form');
+  const inputEl = document.getElementById('user-input');
+  const adsButtonsContainer = document.getElementById('ads-buttons');
+  const rowCountSection = document.getElementById('row-count-section');
+  const rowCountInput = document.getElementById('row-count-input');
+  const rowCountSubmitBtn = document.getElementById('row-count-submit-btn');
+  const videoGridContainer = document.getElementById('video-grid-container');
+
+  let videoIds = [];
+  let requestedCount = 0;
+
+  // Track which ads were watched (buttons clicked)
+  const adsState = [false, false, false];
+
+  const adLinks = [
+    "https://www.profitableratecpm.com/mb78qig4z8?key=b5b93b8c542edb2a6cc5a6149c6ba593",
+    "https://www.profitableratecpm.com/hf2braurgk?key=74295373e75ce6ccc49162dc352ae545",
+    "https://otieu.com/4/9451651"
+  ];
+
+  function appendMessage(text, user = false, delay = 0) {
+    if (delay > 0) {
+      showTypingIndicator();
+      setTimeout(() => {
+        hideTypingIndicator();
+        insertMessage(text, user);
+      }, delay);
+    } else {
+      insertMessage(text, user);
+    }
+  }
+
+  function insertMessage(text, user) {
+    const div = document.createElement('div');
+    div.className = 'message ' + (user ? 'user' : 'bot');
+    div.textContent = text;
+    chatEl.appendChild(div);
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+
+  function showTypingIndicator() {
+    if (document.getElementById('typing-indicator')) return;
+    const typing = document.createElement('div');
+    typing.id = 'typing-indicator';
+    typing.className = 'message bot';
+    typing.setAttribute('aria-live', 'polite');
+    typing.setAttribute('aria-label', 'Bot is typing');
+    typing.innerHTML = `<span class="dot"></span><span class="dot"></span><span class="dot"></span>`;
+    chatEl.appendChild(typing);
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+
+  function hideTypingIndicator() {
+    const typing = document.getElementById('typing-indicator');
+    if (typing) typing.remove();
+  }
+
+  function extractVideoId(urlOrId) {
+    urlOrId = urlOrId.trim();
+    try {
+      const url = new URL(urlOrId);
+      if (
+        url.hostname === 'www.youtube.com' ||
+        url.hostname === 'youtube.com' ||
+        url.hostname === 'm.youtube.com'
+      ) {
+        if (url.searchParams.has('v')) {
+          return url.searchParams.get('v').trim();
+        }
+      }
+      if (url.hostname === 'youtu.be') {
+        return url.pathname.slice(1).trim();
+      }
+      if (/^[a-zA-Z0-9_-]{11}$/.test(urlOrId)) return urlOrId;
+      return null;
+    } catch {
+      if (/^[a-zA-Z0-9_-]{11}$/.test(urlOrId)) return urlOrId;
+      return null;
+    }
+  }
+
+  function parseVideoIdsFromInput(input) {
+    const parts = input.split(/\s*[\n,]\s*/).filter(Boolean);
+    const ids = [];
+    for (const part of parts) {
+      const id = extractVideoId(part);
+      if (id) ids.push(id);
+    }
+    return ids;
+  }
+
+  function validateRowCount(n) {
+    const num = Number(n);
+    return Number.isInteger(num) && num >= 1 && num <= 100;
+  }
+
+  // Create ads buttons UI
+  function createAdsButtons() {
+    adsButtonsContainer.innerHTML = '';
+    adsButtonsContainer.style.display = 'flex';
+    adsButtonsContainer.setAttribute('aria-live', 'polite');
+    adsButtonsContainer.setAttribute('aria-label', 'Watch advertisement buttons');
+    adLinks.forEach((link, index) => {
+      const btn = document.createElement('button');
+      btn.textContent = `Watch Ad ${index + 1}`;
+      btn.disabled = false;
+      btn.setAttribute('aria-pressed', 'false');
+      btn.addEventListener('click', () => {
+        // Open ad in new tab
+        const win = window.open(link, '_blank');
+        if (!win) {
+          alert('Popup blocked! Please allow popups to watch the ad.');
+          return;
+        }
+        // Mark ad as watched
+        adsState[index] = true;
+        btn.disabled = true;
+        btn.textContent = `Ad ${index + 1} Watched ✓`;
+        btn.setAttribute('aria-pressed', 'true');
+        checkAllAdsWatched();
+      });
+      adsButtonsContainer.appendChild(btn);
+    });
+  }
+
+  // Check if all ads watched, then proceed
+  function checkAllAdsWatched() {
+    if (adsState.every(Boolean)) {
+      appendMessage("Thank you for watching all ads! Now please enter the number of videos you want to play (1-100).", false, 600);
+      adsButtonsContainer.style.display = 'none';
+      rowCountSection.style.display = 'flex';
+      rowCountInput.value = '';
+      rowCountInput.min = '1';
+      rowCountInput.max = '100';
+      setTimeout(() => {
+        rowCountInput.focus();
+      }, 200);
+    }
+  }
+
+  // Initial welcome message
+  function startConversation() {
+    appendMessage("Welcome to Blogger Bot!\nPlease paste YouTube video URL(s) or video ID(s), separated by commas or new lines.");
+  }
+
+  formEl.addEventListener('submit', e => {
+    e.preventDefault();
+    const val = inputEl.value.trim();
+    if (!val) return;
+
+    const ids = parseVideoIdsFromInput(val);
+    if (ids.length === 0) {
+      appendMessage("No valid YouTube video URLs or IDs detected. Please try again.");
+      return;
+    }
+    videoIds = ids;
+
+    appendMessage(val, true);
+    appendMessage(`Detected ${ids.length} video${ids.length > 1 ? 's' : ''}. Please watch 3 ads below before proceeding.`);
+
+    formEl.style.display = 'none';
+    rowCountSection.style.display = 'none';
+    videoGridContainer.innerHTML = '';
+    videoGridContainer.hidden = true;
+
+    // Reset ad states and create buttons
+    adsState.fill(false);
+    createAdsButtons();
+  });
+
+  rowCountSubmitBtn.addEventListener('click', () => {
+    const n = rowCountInput.value.trim();
+    if (!validateRowCount(n)) {
+      appendMessage(`Please enter a valid number between 1 and 100.`);
+      rowCountInput.focus();
+      return;
+    }
+    requestedCount = parseInt(n, 10);
+
+    appendMessage(rowCountInput.value, true);
+    appendMessage(`Great! Preparing to play ${requestedCount} video${requestedCount > 1 ? 's' : ''}. Scroll down to view.`, false, 800);
+
+    rowCountSection.style.display = 'none';
+
+    // Prepare video list
+    const toPlayIds = [];
+    if (videoIds.length === 1) {
+      for (let i = 0; i < requestedCount; i++) {
+        toPlayIds.push(videoIds[0]);
+      }
+    } else {
+      for (let i = 0; i < requestedCount; i++) {
+        toPlayIds.push(videoIds[i % videoIds.length]);
+      }
+    }
+
+    videoGridContainer.innerHTML = '';
+    const videoGrid = document.createElement('div');
+    videoGrid.id = 'video-grid';
+
+    for (let id of toPlayIds) {
+      const iframe = document.createElement('iframe');
+      iframe.setAttribute('width', '250');
+      iframe.setAttribute('height', '140');
+      iframe.setAttribute('src', `https://www.youtube.com/embed/${id}?rel=0`);
+      iframe.setAttribute('title', 'YouTube video player');
+      iframe.setAttribute('frameborder', '0');
+      iframe.setAttribute('allow', 'accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+      iframe.setAttribute('allowfullscreen', 'true');
+      videoGrid.appendChild(iframe);
+    }
+
+    videoGridContainer.appendChild(videoGrid);
+    videoGridContainer.hidden = false;
+    chatEl.scrollTop = chatEl.scrollHeight;
+  });
+
+  window.addEventListener('load', () => {
+    inputEl.focus();
+  });
+
+  startConversation();
+
+})();
+</script>
+
+</body>
+</html>
+
