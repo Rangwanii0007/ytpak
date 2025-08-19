@@ -1,596 +1,349 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Blogger Bot - Professional Multi Video Player</title>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
-    rel="stylesheet"
-  />
-  <link
-    href="https://fonts.googleapis.com/icon?family=Material+Icons"
-    rel="stylesheet"
-  />
-  <style>
-    /* Reset & base */
-    *, *::before, *::after {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
-      color: #c9d1d9;
-      font-family: 'Inter', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      overflow-x: hidden;
-    }
-    h1 {
-      font-weight: 700;
-      font-size: 2.75rem;
-      margin-bottom: 0.5rem;
-      color: #58a6ff;
-      text-align: center;
-      user-select: none;
-      text-shadow: 0 0 8px #58a6ff88;
-    }
-    .app-container {
-      max-width: 1200px;
-      width: 100%;
-      background: #21262d;
-      border-radius: 16px;
-      box-shadow: 0 20px 40px rgb(0 0 0 / 0.7);
-      display: flex;
-      flex-direction: column;
-      padding: 24px 28px;
-      gap: 24px;
-      user-select: none;
-      position: relative;
-      margin: 0 auto;
-      flex-shrink: 0;
-    }
-    /* Chat container styled as overlay chatbot bubble covering full viewport */
-    #chat {
-      position: fixed;
-      top: 80px;
-      right: 20px;
-      bottom: 20px;
-      width: 350px;
-      background: #0d1117ee;
-      backdrop-filter: blur(12px);
-      border-radius: 16px;
-      padding: 24px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 0 24px #2382ffcc;
-      scroll-behavior: smooth;
-      z-index: 5000;
-      user-select: text;
-      font-size: 0.95rem;
-    }
-    /* Messages */
-    .message {
-      max-width: 80%;
-      padding: 14px 20px;
-      border-radius: 24px;
-      font-size: 1rem;
-      line-height: 1.5;
-      position: relative;
-      animation: fadeInUp 0.4s ease forwards;
-      word-break: break-word;
-      box-shadow: 0 4px 8px rgb(0 0 0 / 0.15);
-      user-select: text;
-      white-space: pre-wrap;
-    }
-    .message.bot {
-      background: linear-gradient(135deg, #2382ff, #2ea0ff);
-      color: white;
-      align-self: flex-start;
-      border-top-left-radius: 4px;
-      box-shadow: 0 5px 15px #2382ffbb;
-    }
-    .message.user {
-      background: #39d353;
-      color: #0d1117;
-      align-self: flex-end;
-      border-top-right-radius: 4px;
-      box-shadow: 0 5px 15px #39d353aa;
-    }
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translate3d(0, 8px, 0);
-      }
-      to {
-        opacity: 1;
-        transform: translate3d(0, 0, 0);
-      }
-    }
-    /* Typing indicator */
-    #typing-indicator {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-left: 4px;
-    }
-    .dot {
-      width: 8px;
-      height: 8px;
-      background: white;
-      border-radius: 50%;
-      animation: blink 1.4s infinite both;
-      opacity: 0.6;
-    }
-    .dot:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-    .dot:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-    @keyframes blink {
-      0%, 80%, 100% {
-        opacity: 0.3;
-        transform: translateY(0);
-      }
-      40% {
-        opacity: 1;
-        transform: translateY(-4px);
-      }
-    }
-    /* Input area */
-    .input-area {
-      display: flex;
-      gap: 20px;
-      align-items: stretch;
-      margin-top: 16px;
-    }
-    textarea {
-      flex-grow: 1;
-      background: #161b22;
-      border: 2px solid transparent;
-      border-radius: 12px;
-      padding: 14px 20px;
-      font-size: 1rem;
-      color: #c9d1d9;
-      font-family: 'Inter', sans-serif;
-      resize: vertical;
-      min-height: 80px;
-      transition: border-color 0.3s ease;
-      box-shadow: inset 0 0 8px #2382ff33;
-      outline-offset: 2px;
-      outline-color: #58a6ff50;
-    }
-    textarea:hover {
-      border-color: #58a6ff88;
-    }
-    textarea:focus {
-      border-color: #58a6ffcc;
-      box-shadow: inset 0 0 12px #2382ffbb;
-    }
-    input[type="number"] {
-      width: 100px;
-      background: #161b22;
-      border: 2px solid transparent;
-      border-radius: 12px;
-      padding: 14px 16px;
-      font-size: 1rem;
-      color: #c9d1d9;
-      font-family: 'Inter', sans-serif;
-      transition: border-color 0.3s ease;
-      box-shadow: inset 0 0 8px #2382ff33;
-      outline-offset: 2px;
-      outline-color: #58a6ff50;
-      text-align: center;
-    }
-    input[type="number"]:hover {
-      border-color: #58a6ff88;
-    }
-    input[type="number"]:focus {
-      border-color: #58a6ffcc;
-      box-shadow: inset 0 0 12px #2382ffbb;
-    }
-    button {
-      background-color: #2382ff;
-      border: none;
-      border-radius: 12px;
-      color: white;
-      font-weight: 700;
-      font-size: 1.1rem;
-      padding: 14px 28px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      user-select: none;
-      box-shadow: 0 6px 15px #2382ffbb;
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
-      flex-shrink: 0;
-    }
-    button:hover:not(:disabled) {
-      background-color: #1a5eda;
-      box-shadow: 0 8px 25px #1a5edacc;
-    }
-    button:disabled {
-      background-color: #58a6ff88;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-    /* Video grid container & grid */
-    #video-grid-container {
-      margin: 16px auto 80px auto;
-      max-width: 1200px;
-      border-radius: 16px;
-      background: #161b22;
-      box-shadow: 0 12px 30px rgb(0 0 0 / 0.85);
-      padding: 24px;
-      overflow-y: auto;
-      user-select: none;
-    }
-    #video-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 24px;
-      align-items: start;
-    }
-    iframe {
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      border-radius: 14px;
-      border: none;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.4);
-      transition: transform 0.3s ease;
-      cursor: pointer;
-      background: black;
-    }
-    iframe:hover {
-      transform: scale(1.05);
-      box-shadow: 0 12px 32px rgba(35, 130, 255, 0.8);
-      z-index: 5;
-    }
-    /* Scrollbar styles */
-    #chat::-webkit-scrollbar, #video-grid-container::-webkit-scrollbar {
-      width: 8px;
-    }
-    #chat::-webkit-scrollbar-thumb, #video-grid-container::-webkit-scrollbar-thumb {
-      background-color: #2382ffbb;
-      border-radius: 4px;
-    }
-    /* Responsive */
-    @media (max-width: 1200px) {
-      .app-container {
-        max-width: 95vw;
-      }
-      #chat {
-        width: 300px;
-        right: 10px;
-        top: 60px;
-        bottom: 20px;
-      }
-      #video-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 16px;
-      }
-    }
-    @media (max-width: 768px) {
-      #chat {
-        position: fixed;
-        width: 90vw;
-        height: 40vh;
-        right: 5vw;
-        top: 10px;
-        bottom: auto;
-        border-radius: 12px;
-      }
-      #video-grid-container {
-        margin: 24px auto 140px auto;
-        max-width: 100vw;
-        padding: 16px;
-      }
-      #video-grid {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 12px;
-      }
-    }
-    /* Ads buttons container */
-    #ads-buttons {
-      margin-top: 8px;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    #ads-buttons button {
-      background-color: #4caf50;
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      box-shadow: 0 4px 10px rgba(76, 175, 80, 0.5);
-      user-select: none;
-      transition: background-color 0.3s ease;
-      cursor: pointer;
-    }
-    #ads-buttons button:hover:not(:disabled) {
-      background-color: #388e3c;
-    }
-    #ads-buttons button:disabled {
-      background-color: #a5d6a7;
-      cursor: default;
-      box-shadow: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultra Video Downloader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --dark: #1e293b;
+            --light: #f8fafc;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--light) 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+        
+        body.dark {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--light);
+        }
+        
+        .card {
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            background-color: rgba(255, 255, 255, 0.75);
+            border-radius: 12px;
+            border: 1px solid rgba(209, 213, 219, 0.3);
+        }
+        
+        .dark .card {
+            background-color: rgba(30, 41, 59, 0.75);
+            border: 1px solid rgba(15, 23, 42, 0.3);
+        }
+        
+        .platform-icon {
+            transition: all 0.3s ease;
+            filter: grayscale(100%);
+            opacity: 0.7;
+        }
+        
+        .platform-icon:hover {
+            transform: translateY(-5px) scale(1.1);
+            filter: grayscale(0%);
+            opacity: 1;
+        }
+        
+        .platform-icon.active {
+            filter: grayscale(0%);
+            opacity: 1;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        .input-url {
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .input-url:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .download-btn:active {
+            transform: translateY(0);
+        }
+        
+        .download-btn.loading {
+            position: relative;
+            color: transparent;
+        }
+        
+        .download-btn.loading::after {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+            border: 3px solid transparent;
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s ease infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.4s ease;
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+            100% {
+                transform: translateY(0px);
+            }
+        }
+    </style>
 </head>
-<body>
-  <main class="app-container" role="main" aria-labelledby="app-title" >
-    <h1 id="app-title" tabindex="0">Blogger Bot - Video Player</h1>
-
-    <section id="chat" role="log" aria-live="polite" aria-relevant="additions" aria-atomic="false"></section>
-
-    <form id="user-form" class="input-area" aria-label="Chat input form" autocomplete="off" novalidate>
-      <textarea
-        id="user-input"
-        placeholder="Paste YouTube video URL(s) or video ID(s), separated by commas or new lines"
-        rows="3"
-        aria-label="YouTube video URLs or IDs"
-        spellcheck="false"
-        required
-        autofocus
-      ></textarea>
-      <button type="submit" id="submit-btn" aria-label="Send message" title="Send message">
-        <span class="material-icons" aria-hidden="true">send</span> Send
-      </button>
-    </form>
-
-    <section id="ads-buttons" aria-label="Advertisement options" style="display:none;"></section>
-
-    <section id="row-count-section" class="input-area" style="display:none; margin-top: 16px;" aria-label="Number of videos to play input">
-      <input
-        type="number"
-        id="row-count-input"
-        min="1"
-        max="100"
-        placeholder="Enter number of videos to play (1-100)"
-        aria-label="Specify number of videos to play"
-        autofocus
-        required
-      />
-      <button type="button" id="row-count-submit-btn" aria-label="Submit number of videos to play" title="Play videos">Play</button>
-    </section>
-
-    <section id="video-grid-container" aria-label="YouTube video player grid" hidden></section>
-  </main>
-
-<script>
-(function(){
-  const chatEl = document.getElementById('chat');
-  const formEl = document.getElementById('user-form');
-  const inputEl = document.getElementById('user-input');
-  const adsButtonsContainer = document.getElementById('ads-buttons');
-  const rowCountSection = document.getElementById('row-count-section');
-  const rowCountInput = document.getElementById('row-count-input');
-  const rowCountSubmitBtn = document.getElementById('row-count-submit-btn');
-  const videoGridContainer = document.getElementById('video-grid-container');
-
-  let videoIds = [];
-  let requestedCount = 0;
-
-  // Track which ads were watched (buttons clicked)
-  const adsState = [false, false, false];
-
-  const adLinks = [
-    "https://www.profitableratecpm.com/mb78qig4z8?key=b5b93b8c542edb2a6cc5a6149c6ba593",
-    "https://www.profitableratecpm.com/hf2braurgk?key=74295373e75ce6ccc49162dc352ae545",
-    "https://otieu.com/4/9451651"
-  ];
-
-  function appendMessage(text, user = false, delay = 0) {
-    if (delay > 0) {
-      showTypingIndicator();
-      setTimeout(() => {
-        hideTypingIndicator();
-        insertMessage(text, user);
-      }, delay);
-    } else {
-      insertMessage(text, user);
-    }
-  }
-
-  function insertMessage(text, user) {
-    const div = document.createElement('div');
-    div.className = 'message ' + (user ? 'user' : 'bot');
-    div.textContent = text;
-    chatEl.appendChild(div);
-    chatEl.scrollTop = chatEl.scrollHeight;
-  }
-
-  function showTypingIndicator() {
-    if (document.getElementById('typing-indicator')) return;
-    const typing = document.createElement('div');
-    typing.id = 'typing-indicator';
-    typing.className = 'message bot';
-    typing.setAttribute('aria-live', 'polite');
-    typing.setAttribute('aria-label', 'Bot is typing');
-    typing.innerHTML = `<span class="dot"></span><span class="dot"></span><span class="dot"></span>`;
-    chatEl.appendChild(typing);
-    chatEl.scrollTop = chatEl.scrollHeight;
-  }
-
-  function hideTypingIndicator() {
-    const typing = document.getElementById('typing-indicator');
-    if (typing) typing.remove();
-  }
-
-  function extractVideoId(urlOrId) {
-    urlOrId = urlOrId.trim();
-    try {
-      const url = new URL(urlOrId);
-      if (
-        url.hostname === 'www.youtube.com' ||
-        url.hostname === 'youtube.com' ||
-        url.hostname === 'm.youtube.com'
-      ) {
-        if (url.searchParams.has('v')) {
-          return url.searchParams.get('v').trim();
-        }
-      }
-      if (url.hostname === 'youtu.be') {
-        return url.pathname.slice(1).trim();
-      }
-      if (/^[a-zA-Z0-9_-]{11}$/.test(urlOrId)) return urlOrId;
-      return null;
-    } catch {
-      if (/^[a-zA-Z0-9_-]{11}$/.test(urlOrId)) return urlOrId;
-      return null;
-    }
-  }
-
-  function parseVideoIdsFromInput(input) {
-    const parts = input.split(/\s*[\n,]\s*/).filter(Boolean);
-    const ids = [];
-    for (const part of parts) {
-      const id = extractVideoId(part);
-      if (id) ids.push(id);
-    }
-    return ids;
-  }
-
-  function validateRowCount(n) {
-    const num = Number(n);
-    return Number.isInteger(num) && num >= 1 && num <= 100;
-  }
-
-  // Create ads buttons UI
-  function createAdsButtons() {
-    adsButtonsContainer.innerHTML = '';
-    adsButtonsContainer.style.display = 'flex';
-    adsButtonsContainer.setAttribute('aria-live', 'polite');
-    adsButtonsContainer.setAttribute('aria-label', 'Watch advertisement buttons');
-    adLinks.forEach((link, index) => {
-      const btn = document.createElement('button');
-      btn.textContent = `Watch Ad ${index + 1}`;
-      btn.disabled = false;
-      btn.setAttribute('aria-pressed', 'false');
-      btn.addEventListener('click', () => {
-        // Open ad in new tab
-        const win = window.open(link, '_blank');
-        if (!win) {
-          alert('Popup blocked! Please allow popups to watch the ad.');
-          return;
-        }
-        // Mark ad as watched
-        adsState[index] = true;
-        btn.disabled = true;
-        btn.textContent = `Ad ${index + 1} Watched ✓`;
-        btn.setAttribute('aria-pressed', 'true');
-        checkAllAdsWatched();
-      });
-      adsButtonsContainer.appendChild(btn);
-    });
-  }
-
-  // Check if all ads watched, then proceed
-  function checkAllAdsWatched() {
-    if (adsState.every(Boolean)) {
-      appendMessage("Thank you for watching all ads! Now please enter the number of videos you want to play (1-100).", false, 600);
-      adsButtonsContainer.style.display = 'none';
-      rowCountSection.style.display = 'flex';
-      rowCountInput.value = '';
-      rowCountInput.min = '1';
-      rowCountInput.max = '100';
-      setTimeout(() => {
-        rowCountInput.focus();
-      }, 200);
-    }
-  }
-
-  // Initial welcome message
-  function startConversation() {
-    appendMessage("Welcome to Blogger Bot!\nPlease paste YouTube video URL(s) or video ID(s), separated by commas or new lines.");
-  }
-
-  formEl.addEventListener('submit', e => {
-    e.preventDefault();
-    const val = inputEl.value.trim();
-    if (!val) return;
-
-    const ids = parseVideoIdsFromInput(val);
-    if (ids.length === 0) {
-      appendMessage("No valid YouTube video URLs or IDs detected. Please try again.");
-      return;
-    }
-    videoIds = ids;
-
-    appendMessage(val, true);
-    appendMessage(`Detected ${ids.length} video${ids.length > 1 ? 's' : ''}. Please watch 3 ads below before proceeding.`);
-
-    formEl.style.display = 'none';
-    rowCountSection.style.display = 'none';
-    videoGridContainer.innerHTML = '';
-    videoGridContainer.hidden = true;
-
-    // Reset ad states and create buttons
-    adsState.fill(false);
-    createAdsButtons();
-  });
-
-  rowCountSubmitBtn.addEventListener('click', () => {
-    const n = rowCountInput.value.trim();
-    if (!validateRowCount(n)) {
-      appendMessage(`Please enter a valid number between 1 and 100.`);
-      rowCountInput.focus();
-      return;
-    }
-    requestedCount = parseInt(n, 10);
-
-    appendMessage(rowCountInput.value, true);
-    appendMessage(`Great! Preparing to play ${requestedCount} video${requestedCount > 1 ? 's' : ''}. Scroll down to view.`, false, 800);
-
-    rowCountSection.style.display = 'none';
-
-    // Prepare video list
-    const toPlayIds = [];
-    if (videoIds.length === 1) {
-      for (let i = 0; i < requestedCount; i++) {
-        toPlayIds.push(videoIds[0]);
-      }
-    } else {
-      for (let i = 0; i < requestedCount; i++) {
-        toPlayIds.push(videoIds[i % videoIds.length]);
-      }
-    }
-
-    videoGridContainer.innerHTML = '';
-    const videoGrid = document.createElement('div');
-    videoGrid.id = 'video-grid';
-
-    for (let id of toPlayIds) {
-      const iframe = document.createElement('iframe');
-      iframe.setAttribute('width', '250');
-      iframe.setAttribute('height', '140');
-      iframe.setAttribute('src', `https://www.youtube.com/embed/${id}?rel=0`);
-      iframe.setAttribute('title', 'YouTube video player');
-      iframe.setAttribute('frameborder', '0');
-      iframe.setAttribute('allow', 'accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
-      iframe.setAttribute('allowfullscreen', 'true');
-      videoGrid.appendChild(iframe);
-    }
-
-    videoGridContainer.appendChild(videoGrid);
-    videoGridContainer.hidden = false;
-    chatEl.scrollTop = chatEl.scrollHeight;
-  });
-
-  window.addEventListener('load', () => {
-    inputEl.focus();
-  });
-
-  startConversation();
-
-})();
-</script>
-
+<body class="dark:bg-slate-900">
+    <div class="min-h-screen flex flex-col items-center justify-center p-4">
+        <div class="w-full max-w-3xl">
+            <div class="card p-8 mb-8 relative overflow-hidden">
+                <div class="absolute -top-32 -right-32 w-64 h-64 bg-indigo-200 dark:bg-indigo-900 rounded-full opacity-20"></div>
+                <div class="absolute -bottom-32 -left-32 w-64 h-64 bg-purple-200 dark:bg-purple-900 rounded-full opacity-20"></div>
+                <h1 class="text-4xl font-bold text-center mb-2 text-indigo-600 dark:text-indigo-400">Ultra Video Downloader</h1>
+                <p class="text-center text-slate-600 dark:text-slate-300 mb-8">Download videos from multiple platforms with high quality</p>
+                
+                <div class="flex items-center justify-center space-x-2 mb-8">
+                    <button class="theme-toggle p-2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                        <i class="fas fa-sun dark:hidden"></i>
+                        <i class="fas fa-moon hidden dark:inline"></i>
+                    </button>
+                </div>
+                
+                <div class="flex flex-wrap justify-center gap-4 mb-10">
+                    <div class="platform-icon active" data-platform="youtube">
+                        <div class="w-16 h-16 bg-red-500 rounded-xl flex items-center justify-center text-white text-2xl">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+                        <p class="text-center mt-2 text-sm text-slate-600 dark:text-slate-300">YouTube</p>
+                    </div>
+                    
+                    <div class="platform-icon" data-platform="facebook">
+                        <div class="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center text-white text-2xl">
+                            <i class="fab fa-facebook-f"></i>
+                        </div>
+                        <p class="text-center mt-2 text-sm text-slate-600 dark:text-slate-300">Facebook</p>
+                    </div>
+                    
+                    <div class="platform-icon" data-platform="tiktok">
+                        <div class="w-16 h-16 bg-slate-900 rounded-xl flex items-center justify-center text-white text-2xl">
+                            <i class="fab fa-tiktok"></i>
+                        </div>
+                        <p class="text-center mt-2 text-sm text-slate-600 dark:text-slate-300">TikTok</p>
+                    </div>
+                    
+                    <div class="platform-icon" data-platform="twitter">
+                        <div class="w-16 h-16 bg-slate-800 rounded-xl flex items-center justify-center text-white text-2xl">
+                            <i class="fab fa-twitter"></i>
+                        </div>
+                        <p class="text-center mt-2 text-sm text-slate-600 dark:text-slate-300">X</p>
+                    </div>
+                </div>
+                
+                <div class="mb-8">
+                    <div class="relative">
+                        <input type="text" id="videoUrl" class="input-url w-full p-4 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none" placeholder="Paste video URL here...">
+                        <button id="pasteBtn" class="absolute right-3 top-1/2 transform -translate-y-1/2 bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition">Paste</button>
+                    </div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">Supported platforms: YouTube, Facebook, TikTok, X</div>
+                </div>
+                
+                <div class="flex flex-col items-center mb-6 hidden" id="qualityOptions">
+                    <h3 class="text-lg font-medium mb-2 text-slate-700 dark:text-slate-200">Select Quality</h3>
+                    <div class="grid grid-cols-3 md:grid-cols-5 gap-2 w-full">
+                        <button class="quality-btn py-2 px-4 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition text-sm">360p</button>
+                        <button class="quality-btn py-2 px-4 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition text-sm">480p</button>
+                        <button class="quality-btn py-2 px-4 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 transition text-sm">720p</button>
+                        <button class="quality-btn py-2 px-4 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition text-sm">1080p</button>
+                        <button class="quality-btn py-2 px-4 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition text-sm">4K</button>
+                    </div>
+                </div>
+                
+                <div class="progress-bar w-full mb-4 hidden" id="progressContainer">
+                    <div class="progress w-0" id="progressBar"></div>
+                </div>
+                
+                <div class="flex justify-center">
+                    <button id="downloadBtn" class="download-btn text-white py-3 px-8 rounded-lg font-medium">
+                        <i class="fas fa-download mr-2"></i> Download Video
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card p-6 hidden" id="resultCard">
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-check text-green-600 dark:text-green-400 text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-medium mb-2 text-slate-800 dark:text-white">Download Complete!</h3>
+                    <p class="text-slate-600 dark:text-slate-300 mb-4">Your video has been downloaded successfully.</p>
+                    <button id="openFolderBtn" class="bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 py-2 px-4 rounded-lg text-sm font-medium hover:bg-indigo-200 dark:hover:bg-indigo-800 transition">
+                        <i class="fas fa-folder-open mr-2"></i> Open Download Folder
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
+            © 2023 Ultra Video Downloader. All rights reserved.
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Theme toggle
+            const themeToggle = document.querySelector('.theme-toggle');
+            themeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark');
+                localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+            });
+            
+            // Check for saved theme preference
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark');
+            }
+            
+            // Platform selection
+            const platformIcons = document.querySelectorAll('.platform-icon');
+            platformIcons.forEach(icon => {
+                icon.addEventListener('click', () => {
+                    platformIcons.forEach(i => i.classList.remove('active'));
+                    icon.classList.add('active');
+                });
+            });
+            
+            // Paste button
+            const pasteBtn = document.getElementById('pasteBtn');
+            const videoUrl = document.getElementById('videoUrl');
+            pasteBtn.addEventListener('click', async () => {
+                try {
+                    const text = await navigator.clipboard.readText();
+                    videoUrl.value = text;
+                    
+                    // Simulate URL validation
+                    if (text.includes('youtube') || text.includes('facebook') || text.includes('tiktok') || text.includes('twitter')) {
+                        document.getElementById('qualityOptions').classList.remove('hidden');
+                    } else {
+                        alert('This URL is not from a supported platform. Please try again.');
+                        videoUrl.value = '';
+                    }
+                } catch (err) {
+                    alert('Failed to read clipboard contents. Please paste manually.');
+                }
+            });
+            
+            // Quality selection
+            const qualityBtns = document.querySelectorAll('.quality-btn');
+            qualityBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    qualityBtns.forEach(b => b.classList.remove('bg-indigo-500', 'text-white', 'hover:bg-indigo-600'));
+                    qualityBtns.forEach(b => b.classList.add('bg-slate-200', 'dark:bg-slate-700', 'hover:bg-slate-300', 'dark:hover:bg-slate-600'));
+                    btn.classList.add('bg-indigo-500', 'text-white', 'hover:bg-indigo-600');
+                    btn.classList.remove('bg-slate-200', 'dark:bg-slate-700', 'hover:bg-slate-300', 'dark:hover:bg-slate-600');
+                });
+            });
+            
+            // Download button
+            const downloadBtn = document.getElementById('downloadBtn');
+            const progressBar = document.getElementById('progressBar');
+            const progressContainer = document.getElementById('progressContainer');
+            const resultCard = document.getElementById('resultCard');
+            
+            downloadBtn.addEventListener('click', () => {
+                if (!videoUrl.value) {
+                    alert('Please enter a video URL first.');
+                    return;
+                }
+                
+                // Show loading state
+                downloadBtn.classList.add('loading');
+                
+                // Show progress bar
+                progressContainer.classList.remove('hidden');
+                
+                // Simulate download progress
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 10;
+                    if (progress > 100) progress = 100;
+                    progressBar.style.width = progress + '%';
+                    
+                    if (progress === 100) {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            downloadBtn.classList.remove('loading');
+                            document.querySelector('.card').classList.add('hidden');
+                            resultCard.classList.remove('hidden');
+                        }, 500);
+                    }
+                }, 200);
+            });
+            
+            // Open folder button
+            document.getElementById('openFolderBtn').addEventListener('click', () => {
+                alert('This would normally open your downloads folder with the video file.');
+            });
+        });
+    </script>
 </body>
 </html>
+
